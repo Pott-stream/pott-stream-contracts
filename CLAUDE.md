@@ -19,6 +19,8 @@ The full design is in `docs/ARCHITECTURE.md`. That document is the source of tru
 - `cargo test --workspace` : runs unit tests and property tests.
 - `stellar contract build` : builds each contract to WASM. Run it because code that passes tests can still fail to compile for Soroban.
 
+The WASM build target is `wasm32v1-none`, not `wasm32-unknown-unknown` (which fails on Rust 1.82 and newer). `rust-toolchain.toml` installs it; `stellar contract build` uses it.
+
 Always show the real output of these commands. Never summarize them from memory. For every command you run, say in the chat why you are running it and what it does, and explain the result.
 
 ## Layout
@@ -59,7 +61,7 @@ Always show the real output of these commands. Never summarize them from memory.
 
 ## Status
 
-- [ ] C-01 Scaffold workspace and CI
+- [x] C-01 Scaffold workspace and CI
 - [ ] C-02 Stream data model, errors, storage keys
 - [ ] C-03 create_stream
 - [ ] C-04 vested and withdrawable views
