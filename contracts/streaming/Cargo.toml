@@ -1,0 +1,17 @@
+[package]
+name = "pott-streaming"
+description = "Pott-stream streaming contract: linear and cliff streams with cancel"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }

@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  pull_request:
+
+# Least privilege: CI only reads the repo.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  STELLAR_CLI_VERSION: "26.0.0"
+
+jobs:
+  ci:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      # Actions are pinned to full commit SHAs; the tag is in the comment.
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # rust-toolchain.toml pins Rust and adds rustfmt, clippy and wasm32v1-none.
+      - name: Install Rust toolchain
+        run: rustup show active-toolchain
+
+      - name: Install system packages for stellar-cli
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libdbus-1-dev libudev-dev pkg-config
+
+      - name: Cache stellar-cli
+        id: stellar-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/stellar-cli
+          key: stellar-cli-${{ env.STELLAR_CLI_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+
+      - name: Install stellar-cli
+        if: steps.stellar-cache.outputs.cache-hit != 'true'
+        run: cargo install --locked stellar-cli --version "$STELLAR_CLI_VERSION" --root ~/stellar-cli
+
+      - name: Add stellar-cli to PATH
+        run: echo "$HOME/stellar-cli/bin" >> "$GITHUB_PATH"
+
+      - name: Cache cargo build
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test --workspace
+
+      - name: Build contracts to WASM
+        run: stellar contract build
