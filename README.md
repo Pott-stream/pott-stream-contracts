@@ -11,6 +11,8 @@ The design is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Contributor and a
 
 > **Experimental software. Testnet only.**
 > These contracts are unaudited, under active development and not ready to hold real value. Do not deploy them to Stellar mainnet and do not use real funds. Nothing here is financial or legal advice.
+>
+> Pott-stream is not affiliated with or endorsed by the Stellar Development Foundation.
 
 ## Requirements
 

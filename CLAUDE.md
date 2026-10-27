@@ -29,6 +29,13 @@ Always show the real output of these commands. Never summarize them from memory.
 - `contracts/circle/` : the circle contract
 - `docs/ARCHITECTURE.md` : design, formulas, issue list
 - `CLAUDE.md` : this file
+- `Cargo.toml` : workspace manifest; pins `soroban-sdk`
+- `Cargo.lock` : locked dependency versions (committed)
+- `rust-toolchain.toml` : pins Rust, with `rustfmt`, `clippy` and the `wasm32v1-none` target
+- `.github/workflows/ci.yml` : pull request CI (fmt, clippy, test, contract build)
+- `LICENSE` : Apache-2.0
+- `README.md` : project overview, disclaimer and how to run the checks
+- `.gitignore` : excludes `target/`, `.env` files and key material
 
 ## Rules for contract code
 
