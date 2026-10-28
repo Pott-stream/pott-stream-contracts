@@ -55,7 +55,8 @@ Always show the real output of these commands. Never summarize them from memory.
 
 - The vesting formula (architecture doc, "Streaming contract").
 - The collateral formula and the slashing rebase (architecture doc, "Defaults and collateral").
-- Open decisions 1 to 3 in the architecture doc are undecided. Do not invent answers. Leave a `TODO` that names the decision and ask me.
+- Open decisions 1 and 2 in the architecture doc are undecided. Do not invent answers. Leave a `TODO` that names the decision and ask me.
+- Math width (decision 3, decided): amounts stay `i128` with checked arithmetic, and `create_stream` rejects any stream where `total * (end - start)` overflows `i128`. No 256-bit intermediate.
 
 ## How to work
 
@@ -70,7 +71,7 @@ Always show the real output of these commands. Never summarize them from memory.
 
 - [x] C-01 Scaffold workspace and CI
 - [x] C-02 Stream data model, errors, storage keys
-- [ ] C-03 create_stream
+- [x] C-03 create_stream
 - [ ] C-04 vested and withdrawable views
 - [ ] C-05 withdraw
 - [ ] C-06 cancel
