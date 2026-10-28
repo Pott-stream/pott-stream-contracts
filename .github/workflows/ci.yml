@@ -40,10 +40,14 @@ jobs:
         with:
           version: ${{ env.STELLAR_CLI_VERSION }}
 
-      # The cache key includes the Rust version and hashes of Cargo.lock,
-      # Cargo.toml and rust-toolchain.toml.
+      # The cache key is built from hashes of Cargo.lock, Cargo.toml and
+      # rust-toolchain.toml. The environment hash is turned off: it also covers
+      # the Rust versions preinstalled on the runner image, which differ between
+      # runner images and made the key change from run to run.
       - name: Cache cargo build
         uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          add-rust-environment-hash-key: false
 
       - name: Print tool versions
         run: |
