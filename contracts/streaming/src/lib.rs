@@ -2,6 +2,15 @@
 
 use soroban_sdk::{contract, contractimpl};
 
+pub mod error;
+// The storage helpers have no caller until create_stream lands in C-03.
+#[cfg_attr(not(test), allow(dead_code))]
+mod storage;
+pub mod types;
+
+pub use error::Error;
+pub use types::Stream;
+
 #[contract]
 pub struct StreamingContract;
 
