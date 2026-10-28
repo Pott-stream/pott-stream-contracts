@@ -40,14 +40,25 @@ jobs:
         with:
           version: ${{ env.STELLAR_CLI_VERSION }}
 
-      # The cache key is built from hashes of Cargo.lock, Cargo.toml and
-      # rust-toolchain.toml. The environment hash is turned off: it also covers
-      # the Rust versions preinstalled on the runner image, which differ between
-      # runner images and made the key change from run to run.
+      # rust-cache hashes every installed toolchain into its cache key. The
+      # runner image ships its own `stable`, and that version changes with the
+      # image, so the key (and the cache) changed from run to run. Remove every
+      # toolchain except the pinned one so the key depends only on our files.
+      - name: Keep only the pinned Rust toolchain
+        run: |
+          pinned="$(rustup show active-toolchain | awk '{print $1}')"
+          echo "pinned toolchain: $pinned"
+          for toolchain in $(rustup toolchain list | awk '{print $1}'); do
+            if [ "$toolchain" != "$pinned" ]; then
+              rustup toolchain uninstall "$toolchain"
+            fi
+          done
+          rustup toolchain list
+
+      # The cache key is built from the Rust version and hashes of Cargo.lock,
+      # Cargo.toml and rust-toolchain.toml.
       - name: Cache cargo build
         uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
-        with:
-          add-rust-environment-hash-key: false
 
       - name: Print tool versions
         run: |
