@@ -69,7 +69,7 @@ Always show the real output of these commands. Never summarize them from memory.
 ## Status
 
 - [x] C-01 Scaffold workspace and CI
-- [ ] C-02 Stream data model, errors, storage keys
+- [x] C-02 Stream data model, errors, storage keys
 - [ ] C-03 create_stream
 - [ ] C-04 vested and withdrawable views
 - [ ] C-05 withdraw
