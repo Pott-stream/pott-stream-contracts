@@ -5,6 +5,7 @@ use soroban_sdk::{contract, contractimpl, token::Client as TokenClient, Address,
 pub mod error;
 mod storage;
 pub mod types;
+mod vesting;
 
 #[cfg(test)]
 mod test;
@@ -60,6 +61,18 @@ impl StreamingContract {
         TokenClient::new(&env, &token).transfer(&sender, env.current_contract_address(), &total);
 
         Ok(id)
+    }
+
+    /// The amount of the stream vested at the current ledger time, rounded down.
+    pub fn vested(env: Env, stream_id: u64) -> Result<i128, Error> {
+        let stream = storage::read_stream(&env, stream_id)?;
+        vesting::vested_at(&stream, env.ledger().timestamp())
+    }
+
+    /// The vested amount minus what the recipient has already withdrawn.
+    pub fn withdrawable(env: Env, stream_id: u64) -> Result<i128, Error> {
+        let stream = storage::read_stream(&env, stream_id)?;
+        vesting::withdrawable_at(&stream, env.ledger().timestamp())
     }
 }
 
