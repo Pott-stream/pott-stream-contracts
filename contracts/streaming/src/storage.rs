@@ -17,6 +17,8 @@ pub enum DataKey {
 const FIRST_STREAM_ID: u64 = 1;
 
 /// Reads a stream, or `StreamNotFound` if the id was never written.
+// No contract function reads a stream until C-04/C-05; remove this then.
+#[cfg_attr(not(test), allow(dead_code))]
 pub(crate) fn read_stream(env: &Env, id: u64) -> Result<Stream, Error> {
     // TODO(C-09): extend the TTL of this entry on reads that matter.
     env.storage()

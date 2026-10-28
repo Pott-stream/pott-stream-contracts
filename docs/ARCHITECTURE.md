@@ -111,7 +111,7 @@ Vested amount at time t, rounded down so the contract never over-releases:
 \text{vested}(t) = \begin{cases} 0 & t < \text{cliff} \\ \text{total} & t \ge \text{end} \\ \left\lfloor \dfrac{\text{total} \times (t - \text{start})}{\text{end} - \text{start}} \right\rfloor & \text{otherwise} \end{cases}
 ```
 
-Multiply before dividing, and use checked arithmetic throughout. Whether to cap total or use a 256-bit intermediate is an open question in the last sections.
+Multiply before dividing, and use checked arithmetic throughout. Amounts stay in i128 with no 256-bit intermediate: `create_stream` rejects any stream where total × (end − start) would overflow i128, with `ArithmeticOverflow`, so `vested` can never overflow later (decision 3, decided).
 
 **Functions**
 
@@ -308,7 +308,7 @@ Build in this order, and do not start a phase until the previous gate passes.
 
 1. **Locked funds run out.** If a defaulter's unvested stream and collateral are both used up, does the group skip the round, reduce the pot, or draw on a shared reserve?
 2. **Default before winning.** The proposal takes the one-contribution collateral floor and removes the member from the rotation. Is that enough, or should every member post more?
-3. **Math width.** Cap the stream total so the multiplication fits in i128, or use a 256-bit intermediate?
+3. **Math width. DECIDED.** Keep i128 and use checked arithmetic. `create_stream` rejects any stream where total × (end − start) would overflow i128, with `ArithmeticOverflow`, so `vested` can never overflow later. No 256-bit intermediate.
 4. **Member cap.** The right maximum depends on Soroban resource limits; measure it on testnet before fixing a number.
 5. **Upgradeability.** Ship immutable contracts, or add an upgrade function behind a timelocked multisig?
 6. **Late payments.** Reject contributions after the grace period, or accept them with a penalty?
