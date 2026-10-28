@@ -72,7 +72,7 @@ Always show the real output of these commands. Never summarize them from memory.
 - [x] C-01 Scaffold workspace and CI
 - [x] C-02 Stream data model, errors, storage keys
 - [x] C-03 create_stream
-- [ ] C-04 vested and withdrawable views
+- [x] C-04 vested and withdrawable views
 - [ ] C-05 withdraw
 - [ ] C-06 cancel
 - [ ] C-07 Stream events

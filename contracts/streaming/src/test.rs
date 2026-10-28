@@ -329,3 +329,95 @@ fn stream_with_a_controller_stores_it() {
 
     assert_eq!(f.stored(id).unwrap().controller, Some(controller));
 }
+
+#[test]
+fn views_return_not_found_for_a_missing_id() {
+    let f = Fixture::new(10_000);
+
+    assert_eq!(f.client().try_vested(&1), Err(Ok(Error::StreamNotFound)));
+    assert_eq!(
+        f.client().try_withdrawable(&1),
+        Err(Ok(Error::StreamNotFound))
+    );
+
+    // An id that was never created stays missing next to one that exists.
+    f.env.mock_all_auths();
+    f.try_create(1_000, 1_000, 1_000, 2_000, None).unwrap();
+    assert_eq!(f.client().try_vested(&2), Err(Ok(Error::StreamNotFound)));
+    assert_eq!(f.client().try_vested(&0), Err(Ok(Error::StreamNotFound)));
+}
+
+#[test]
+fn views_need_no_authorization() {
+    let f = Fixture::new(10_000);
+    f.env.mock_all_auths();
+    let id = f.try_create(1_000, 1_000, 1_000, 2_000, None).unwrap();
+
+    // Auths are mocked, so a view that called require_auth would be recorded.
+    assert_eq!(f.client().vested(&id), 0);
+    assert!(f.env.auths().is_empty());
+    assert_eq!(f.client().withdrawable(&id), 0);
+    assert!(f.env.auths().is_empty());
+}
+
+#[test]
+fn views_read_the_ledger_time() {
+    let f = Fixture::new(10_000);
+    f.env.mock_all_auths();
+    // starts now, ends in 1_000 seconds
+    let id = f.try_create(1_000, NOW, NOW, NOW + 1_000, None).unwrap();
+
+    for (time, expected) in [
+        (NOW, 0),
+        (NOW + 250, 250),
+        (NOW + 500, 500),
+        (NOW + 999, 999),
+        (NOW + 1_000, 1_000),
+        (NOW + 5_000, 1_000),
+    ] {
+        f.env.ledger().set_timestamp(time);
+        assert_eq!(f.client().vested(&id), expected, "vested at {time}");
+        assert_eq!(
+            f.client().withdrawable(&id),
+            expected,
+            "withdrawable at {time}"
+        );
+    }
+}
+
+#[test]
+fn views_respect_the_cliff() {
+    let f = Fixture::new(10_000);
+    f.env.mock_all_auths();
+    // 1_000 over 1_000 seconds with the cliff halfway
+    let id = f
+        .try_create(1_000, NOW, NOW + 500, NOW + 1_000, None)
+        .unwrap();
+
+    f.env.ledger().set_timestamp(NOW + 499);
+    assert_eq!(f.client().vested(&id), 0);
+    f.env.ledger().set_timestamp(NOW + 500);
+    assert_eq!(f.client().vested(&id), 500);
+}
+
+#[test]
+fn withdrawable_subtracts_a_partial_withdrawn_value_set_in_storage() {
+    let f = Fixture::new(10_000);
+    f.env.mock_all_auths();
+    let id = f.try_create(1_000, NOW, NOW, NOW + 1_000, None).unwrap();
+
+    // withdraw is C-05; set the field directly
+    f.env.as_contract(&f.contract, || {
+        let mut stream = storage::read_stream(&f.env, id).unwrap();
+        stream.withdrawn = 200;
+        storage::write_stream(&f.env, &stream);
+    });
+
+    f.env.ledger().set_timestamp(NOW + 500);
+    assert_eq!(f.client().vested(&id), 500);
+    assert_eq!(f.client().withdrawable(&id), 300);
+
+    f.env.ledger().set_timestamp(NOW + 1_000);
+    assert_eq!(f.client().vested(&id), 1_000);
+    assert_eq!(f.client().withdrawable(&id), 800);
+}
